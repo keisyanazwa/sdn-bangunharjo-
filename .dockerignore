@@ -1,0 +1,24 @@
+# Abaikan folder dependensi, karena akan diinstal di dalam container
+/vendor/
+/node_modules/
+
+# Abaikan file environment lokal, karena akan dikonfigurasi di docker-compose
+.env
+/.vscode/
+.DS_Store
+
+# Abaikan file log
+/storage/logs/
+/storage/framework/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Abaikan folder git
+.git
+.gitignore
+
+# Abaikan file-file Docker itu sendiri
+Dockerfile
+.dockerignore
+docker-compose.yml

@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  # Service untuk Aplikasi Laravel (PHP-FPM)
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        UID: ${UID:-1000}
+        GID: ${GID:-1000}
+    container_name: laravel_app
+    restart: unless-stopped
+    volumes:
+      - .:/var/www/html
+      - /var/www/html/vendor
+      - /var/www/html/node_modules
+    networks:
+      - laravel-net
+
+  # Service untuk Web Server (Nginx)
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: laravel_nginx
+    restart: unless-stopped
+    ports:
+      - "${APP_PORT:-8000}:80"
+    volumes:
+      - .:/var/www/html
+      - ./docker/nginx/default.conf:/etc/nginx/conf.d/default.conf
+    depends_on:
+      - app
+      - db
+    networks:
+      - laravel-net
+
+  # --- PERUBAHAN DATABASE ---
+  # Mengganti MySQL dengan MariaDB untuk stabilitas yang lebih baik
+  db:
+    image: mariadb:10.6 # Menggunakan MariaDB yang lebih stabil
+    container_name: laravel_db
+    restart: unless-stopped
+    environment:
+      # Variabel environment untuk MariaDB
+      MARIADB_DATABASE: ${DB_DATABASE:-laravel}
+      MARIADB_USER: ${DB_USERNAME:-user}
+      MARIADB_PASSWORD: ${DB_PASSWORD:-password}
+      MARIADB_ROOT_PASSWORD: ${DB_PASSWORD:-password}
+    ports:
+      - "${DB_PORT:-3307}:3306" # Mengubah port di komputer Anda ke 3307 untuk menghindari konflik
+    volumes:
+      - db_data:/var/lib/mysql
+    networks:
+      - laravel-net
+
+# Mendefinisikan network
+networks:
+  laravel-net:
+    driver: bridge
+
+# Mendefinisikan volume untuk persistensi data database
+volumes:
+  db_data:
+    driver: local
